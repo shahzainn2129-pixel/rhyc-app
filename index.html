@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>RHYC Registrations</title>
+<meta name="theme-color" content="#0B5D4B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="RHYC">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@400;500;600&family=Noto+Nastaliq+Urdu:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: one calm admin screen. Header band with leaf motif, stat cards, a collapsible entry form, then a searchable list that stacks on phones. */
+:root{
+  --bg:#F3F8F4; --surface:#FFFFFF; --sage:#E4EFE8; --line:#DCE9E0;
+  --ink:#12302A; --muted:#3F5F55; --label:#4B6A61;
+  --accent:#0B5D4B; --btn:#0B5D4B; --on-btn:#F6F1E3; --emb:#0B5D4B;
+  --gold:#D4A94A; --field:#8FB3A0; --leaf:#8FC3A5;
+  --danger:#8A2A18; --danger-bg:#FBEAE6;
+  --ok-bg:#DCEFE3; --ok-fg:#0B5D4B; --pend-bg:#F6EBC8; --pend-fg:#6B520F;
+  --serif:'Cormorant Garamond',Georgia,serif; --sans:'Montserrat',system-ui,sans-serif; --urdu:'Noto Nastaliq Urdu',serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1B17; --surface:#15271F; --sage:#1B332A; --line:#27443A;
+  --ink:#E6F0EA; --muted:#A9C3B7; --label:#9DB8AC;
+  --accent:#7FD6B8; --btn:#3FAE8E; --on-btn:#06241C; --emb:#0B5D4B;
+  --gold:#E3BE6A; --field:#4E7A68; --leaf:#2C5A49;
+  --danger:#F2A090; --danger-bg:#3A1D17;
+  --ok-bg:#1E4636; --ok-fg:#8FE0BE; --pend-bg:#4A3B12; --pend-fg:#F0D58A;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1B17; --surface:#15271F; --sage:#1B332A; --line:#27443A;
+  --ink:#E6F0EA; --muted:#A9C3B7; --label:#9DB8AC;
+  --accent:#7FD6B8; --btn:#3FAE8E; --on-btn:#06241C; --emb:#0B5D4B;
+  --gold:#E3BE6A; --field:#4E7A68; --leaf:#2C5A49;
+  --danger:#F2A090; --danger-bg:#3A1D17;
+  --ok-bg:#1E4636; --ok-fg:#8FE0BE; --pend-bg:#4A3B12; --pend-fg:#F0D58A;
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;margin:0;padding-bottom:env(safe-area-inset-bottom,0px)}
+.band{padding-top:env(safe-area-inset-top,0px)}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+.band{background:var(--sage);position:relative;overflow:hidden;border-bottom:1px solid var(--line);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.band .leaf{position:absolute;right:-30px;top:-40px;opacity:.55}
+.band-in{position:relative;max-width:1040px;margin:0 auto;padding-block:20px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand .t1{font-family:var(--serif);font-weight:700;font-size:30px;line-height:1;color:var(--accent)}
+.brand .t2{font-weight:600;font-size:10px;letter-spacing:.3em;margin-top:3px}
+.urdu{font-family:var(--urdu);font-weight:600;font-size:22px;line-height:1.9;color:var(--accent)}
+.emb-bg{fill:var(--emb)}.emb-ring{fill:none;stroke:#D4A94A;stroke-width:3}.emb-gold{fill:#D4A94A}.emb-road{fill:#F6F1E3}.emb-dash{stroke:var(--emb);stroke-width:4;stroke-dasharray:9 7}
+
+main{max-width:1040px;margin:0 auto;padding-block:28px 56px;display:flex;flex-direction:column;gap:22px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2{font-family:var(--serif);font-weight:700;margin:0;line-height:1.1;text-wrap:balance}
+h1{font-size:40px}h2{font-size:26px;color:var(--accent)}
+.sub{color:var(--muted);margin:6px 0 0}
+
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.stat .k{font-size:13px;font-weight:600;color:var(--label)}
+.stat .v{font-family:var(--serif);font-weight:700;font-size:44px;line-height:1.05;color:var(--accent);font-variant-numeric:tabular-nums}
+
+.bar{display:flex;flex-wrap:wrap;gap:12px}
+.btn{min-height:48px;padding:0 24px;border:0;border-radius:999px;background:var(--btn);color:var(--on-btn);font-weight:600;font-size:14px;cursor:pointer}
+.btn.o{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+.btn.d{background:transparent;color:var(--danger);border:1.5px solid var(--danger)}
+.btn:disabled{opacity:.55;cursor:default}
+.btn:hover:not(:disabled){filter:brightness(1.07)}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:18px}
+.row2{display:flex;flex-wrap:wrap;gap:18px}
+.f{display:flex;flex-direction:column;gap:7px;flex:1 1 220px;min-width:0}
+.f.sm{flex:1 1 100px}.f.lg{flex:2 1 260px}
+label.l{font-size:14px;font-weight:600}
+input[type=text],input[type=tel],input[type=number],input[type=search]{height:48px;padding:0 14px;border:1.5px solid var(--field);border-radius:10px;background:var(--surface);width:100%}
+input:focus,textarea:focus{border-color:var(--accent)}
+.guard{background:var(--sage);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.guard b{font-size:14px;color:var(--accent)}
+.chk{display:flex;align-items:flex-start;gap:12px;font-size:14px;color:var(--muted);min-height:44px}
+.chk input{width:20px;height:20px;margin-top:2px;flex:none;accent-color:var(--btn)}
+.msg{border-radius:10px;padding:12px 16px;font-size:14px;font-weight:500}
+.msg.err{background:var(--danger-bg);color:var(--danger)}.msg.ok{background:var(--ok-bg);color:var(--ok-fg)}
+
+.search{max-width:380px}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.head,.rowm{display:grid;grid-template-columns:minmax(0,2fr) 56px minmax(0,2fr) minmax(0,2fr) minmax(0,1.3fr);gap:10px;align-items:center;padding:6px 20px}
+.head{background:var(--sage);padding-block:14px;font-size:12px;font-weight:600;letter-spacing:.12em;color:var(--accent)}
+.item{border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.nm{background:none;border:0;padding:8px 0;min-height:44px;font-weight:500;text-align:left;cursor:pointer;text-decoration:underline;text-decoration-color:var(--field);text-underline-offset:3px;overflow-wrap:anywhere}
+.pill{display:inline-block;padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600;justify-self:start}
+.pill.c{background:var(--ok-bg);color:var(--ok-fg)}.pill.p{background:var(--pend-bg);color:var(--pend-fg)}
+.cell{overflow-wrap:anywhere;color:var(--muted)}.cell.ph{color:var(--ink)}
+.info{display:none}
+.detail{background:var(--bg);padding:6px 20px 20px;display:flex;flex-direction:column;gap:16px}
+.dg{display:flex;flex-wrap:wrap;gap:16px 32px;padding-top:12px}
+.dg div{min-width:150px}.dg .k{font-size:12px;font-weight:600;letter-spacing:.1em;color:var(--label)}.dg .v{white-space:pre-wrap;overflow-wrap:anywhere}
+.empty{padding:40px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;color:var(--muted)}
+.empty b{font-family:var(--serif);font-size:26px;color:var(--accent)}
+.note{font-size:13px;color:var(--label)}
+.locked{max-width:560px;margin:40px auto;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
+
+@media (max-width:719px){
+  h1{font-size:34px}
+  .stat .v{font-size:36px}
+  .head{display:none}
+  .rowm{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"nm st" "info info";gap:2px 10px}
+  .rowm .nmw{grid-area:nm}.rowm .st{grid-area:st}
+  .rowm .cell,.rowm .age{display:none}
+  .rowm .info{display:block;grid-area:info;color:var(--muted);padding-bottom:10px;overflow-wrap:anywhere}
+}
+@media (max-width:420px){.stats{grid-template-columns:1fr 1fr 1fr;gap:8px}.stat{padding:12px}.stat .k{font-size:12px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="band">
+  <svg class="leaf" width="200" height="200" viewBox="0 0 60 60" aria-hidden="true"><path d="M0 60C0 22 24 2 60 0C60 38 36 58 0 60Z" style="fill:var(--leaf)"/><path d="M4 56C18 38 34 22 54 6" stroke="var(--sage)" stroke-width="1.4" fill="none"/></svg>
+  <div class="band-in">
+    <div class="brand">
+      <svg width="54" height="54" viewBox="0 0 200 200" role="img" aria-label="RHYC emblem" style="display:block;flex:none">
+        <circle class="emb-bg" cx="100" cy="100" r="96"/><circle class="emb-ring" cx="100" cy="100" r="88"/>
+        <path class="emb-gold" d="M112 38A22 22 0 1 0 112 78A24 24 0 0 1 112 38Z"/>
+        <rect class="emb-gold" x="110" y="52" width="12" height="12"/><rect class="emb-gold" x="110" y="52" width="12" height="12" transform="rotate(45 116 58)"/>
+        <polygon class="emb-road" points="68,172 132,172 104,96 96,96"/><line class="emb-dash" x1="100" y1="168" x2="100" y2="100"/>
+      </svg>
+      <div><div class="t1">Rahe-Haq</div><div class="t2">YOUTH COMMUNITY</div></div>
+    </div>
+    <div class="urdu" lang="ur" dir="rtl">راہِ حق</div>
+  </div>
+</div>
+
+<main id="app">
+  <div>
+    <h1>Registrations</h1>
+    <p class="sub">Add each young person yourself. Everything is saved on this phone only.</p>
+  </div>
+
+  <div id="locked" class="locked" hidden>
+    <h2 id="locked-title">Organizer access only</h2>
+    <p class="sub" id="locked-text">This app needs a browser that can store data on the phone.</p>
+  </div>
+
+  <div id="content" style="display:flex;flex-direction:column;gap:22px">
+    <div class="stats" aria-label="Summary">
+      <div class="stat"><div class="k">Total</div><div class="v" id="st-total">0</div></div>
+      <div class="stat"><div class="k">Under 18</div><div class="v" id="st-minors">0</div></div>
+      <div class="stat"><div class="k">Pending call</div><div class="v" id="st-pending">0</div></div>
+    </div>
+
+    <div class="bar">
+      <button class="btn" id="add-toggle" type="button" aria-expanded="false" aria-controls="add-form">Add registration</button>
+      <button class="btn o" id="export" type="button" hidden>Export to Excel</button>
+      <button class="btn o" id="backup" type="button" hidden>Save backup</button>
+      <button class="btn o" id="restore" type="button">Restore backup</button>
+      <input id="restore-file" type="file" accept=".json,application/json" hidden>
+    </div>
+    <div id="toast" class="msg" role="status" hidden></div>
+
+    <form class="panel" id="add-form" novalidate hidden>
+      <h2>New registration</h2>
+      <div class="row2">
+        <div class="f lg"><label class="l" for="n-name">Full name</label><input id="n-name" type="text" maxlength="80" autocomplete="off"></div>
+        <div class="f sm"><label class="l" for="n-age">Age</label><input id="n-age" type="number" min="5" max="80" inputmode="numeric"></div>
+      </div>
+      <div class="row2">
+        <div class="f"><label class="l" for="n-class">Class or occupation</label><input id="n-class" type="text" maxlength="100" autocomplete="off"></div>
+        <div class="f"><label class="l" for="n-phone">Phone or WhatsApp</label><input id="n-phone" type="tel" maxlength="20" autocomplete="off"></div>
+      </div>
+      <div class="guard" id="n-guard" hidden>
+        <b>Parent or guardian details (required under 18)</b>
+        <div class="row2">
+          <div class="f"><label class="l" for="n-gname">Guardian name</label><input id="n-gname" type="text" maxlength="80" autocomplete="off"></div>
+          <div class="f"><label class="l" for="n-gphone">Guardian phone</label><input id="n-gphone" type="tel" maxlength="20" autocomplete="off"></div>
+        </div>
+      </div>
+      <div class="f" style="flex:none"><label class="l" for="n-q">Any other question (optional)</label><input id="n-q" type="text" maxlength="1000" autocomplete="off"></div>
+      <div class="f" style="flex:none"><label class="l" for="n-heard">Where did you hear about us?</label><input id="n-heard" type="text" maxlength="200" autocomplete="off"></div>
+      <label class="chk"><input id="n-consent" type="checkbox"><span>Information confirmed, and parent or guardian consent taken if under 18.</span></label>
+      <div id="n-msg" class="msg" role="alert" hidden></div>
+      <div class="bar">
+        <button class="btn" id="n-save" type="submit">Save registration</button>
+        <button class="btn o" id="n-close" type="button">Close</button>
+      </div>
+    </form>
+
+    <div class="f search" style="flex:none"><label class="l" for="q">Search by name or phone</label><input id="q" type="search" autocomplete="off"></div>
+
+    <div class="list" id="list">
+      <div class="head" aria-hidden="true"><div>NAME</div><div>AGE</div><div>PHONE</div><div>HEARD FROM</div><div>STATUS</div></div>
+      <div id="rows"></div>
+      <div class="empty" id="empty"><b>No registrations yet</b><span>Press "Add registration" to enter the first one. It will appear here at once.</span></div>
+    </div>
+    <div class="note">Select a name to see full details, confirm a registration or remove it.</div>
+    <div class="note" id="persist-note">Your registrations are stored only on this phone. Press "Save backup" every week and keep the file safe, because clearing the browser data would erase them.</div>
+  </div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var rows = [], open = {}, query = '', armed = null, toastTimer = null;
+
+  /* ---------- Local store (IndexedDB, with a copy of the list for fast rendering) ---------- */
+  var store = (function () {
+    var dbp = null;
+    function conn() {
+      if (dbp) return dbp;
+      dbp = new Promise(function (resolve, reject) {
+        if (!window.indexedDB) return reject(new Error('no-idb'));
+        var req = indexedDB.open('rhyc-registrations', 1);
+        req.onupgradeneeded = function () { req.result.createObjectStore('registrations', { keyPath: 'id' }); };
+        req.onsuccess = function () { resolve(req.result); };
+        req.onerror = function () { reject(req.error || new Error('idb')); };
+      });
+      return dbp;
+    }
+    function run(mode, fn) {
+      return conn().then(function (d) {
+        return new Promise(function (resolve, reject) {
+          var tx = d.transaction('registrations', mode), out = fn(tx.objectStore('registrations'));
+          tx.oncomplete = function () { resolve(out && out.result !== undefined ? out.result : undefined); };
+          tx.onerror = tx.onabort = function () { reject(tx.error || new Error('tx')); };
+        });
+      });
+    }
+    return {
+      all: function () { return run('readonly', function (s) { return s.getAll(); }).then(function (r) { return r || []; }); },
+      put: function (o) { return run('readwrite', function (s) { s.put(o); }); },
+      remove: function (id) { return run('readwrite', function (s) { s.delete(id); }); },
+      get: function (id) { return run('readonly', function (s) { return s.get(id); }); }
+    };
+  })();
+  function newId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  function refresh() {
+    return store.all().then(function (list) {
+      list.sort(function (a, b) { return String(b.createdAt).localeCompare(String(a.createdAt)); });
+      rows = list; render();
+    });
+  }
+  function addRow(o) { o.id = newId(); return store.put(o).then(refresh); }
+  function updateRow(id, patch) { return store.get(id).then(function (o) { if (!o) return; return store.put(Object.assign(o, patch)); }).then(refresh); }
+  function removeRow(id) { return store.remove(id).then(refresh); }
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function toast(text, good) {
+    var t = $('toast');
+    t.textContent = text; t.hidden = !text;
+    t.className = 'msg ' + (good ? 'ok' : 'err');
+    clearTimeout(toastTimer);
+    if (text) toastTimer = setTimeout(function () { t.hidden = true; }, 5000);
+  }
+  function lock(title, text) {
+    $('locked-title').textContent = title; $('locked-text').textContent = text;
+    $('locked').hidden = false; $('content').hidden = true;
+  }
+  function fmtDate(iso) {
+    var d = new Date(iso);
+    return isNaN(d) ? '' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  var cleanText = function (v, max) { return String(v == null ? '' : v).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max); };
+  var phoneOk = function (p) { return /^[0-9+\-\s()]{7,20}$/.test(p) && p.replace(/\D/g, '').length >= 7; };
+
+  /* ---------- Render ---------- */
+  function render() {
+    var q = query.trim().toLowerCase(), qd = q.replace(/\D/g, '');
+    var list = rows.filter(function (r) {
+      if (!q) return true;
+      if (String(r.name).toLowerCase().indexOf(q) !== -1 || String(r.phone).indexOf(q) !== -1) return true;
+      return qd !== '' && String(r.phoneKey || '').indexOf(qd) !== -1;
+    });
+    $('st-total').textContent = rows.length;
+    $('st-minors').textContent = rows.filter(function (r) { return r.age < 18; }).length;
+    $('st-pending').textContent = rows.filter(function (r) { return r.status !== 'Confirmed'; }).length;
+    $('export').hidden = rows.length === 0; $('backup').hidden = rows.length === 0;
+
+    var box = $('rows'); box.textContent = '';
+    list.forEach(function (r) {
+      var item = el('div', 'item'), line = el('div', 'rowm');
+      var nmw = el('div', 'nmw');
+      var nb = el('button', 'nm', r.name); nb.type = 'button';
+      nb.setAttribute('aria-expanded', open[r.id] ? 'true' : 'false');
+      nb.addEventListener('click', function () { open[r.id] = !open[r.id]; render(); });
+      nmw.appendChild(nb); line.appendChild(nmw);
+      line.appendChild(el('div', 'cell age', String(r.age)));
+      line.appendChild(el('div', 'cell ph', r.phone));
+      line.appendChild(el('div', 'cell', r.heard || '-'));
+      var ok = r.status === 'Confirmed';
+      var st = el('div', 'st'); st.appendChild(el('span', 'pill ' + (ok ? 'c' : 'p'), ok ? 'Confirmed' : 'Pending'));
+      line.appendChild(st);
+      line.appendChild(el('div', 'info', 'Age ' + r.age + '  ·  ' + r.phone + (r.heard ? '  ·  ' + r.heard : '')));
+      item.appendChild(line);
+
+      if (open[r.id]) {
+        var d = el('div', 'detail'), g = el('div', 'dg');
+        var add = function (k, v) { var c = el('div'); c.appendChild(el('div', 'k', k)); c.appendChild(el('div', 'v', v || '-')); g.appendChild(c); };
+        add('REGISTERED', fmtDate(r.createdAt)); add('CLASS OR OCCUPATION', r.cls);
+        if (r.age < 18) { add('GUARDIAN', r.gname); add('GUARDIAN PHONE', r.gphone); }
+        add('QUESTION', r.question);
+        d.appendChild(g);
+        var bar = el('div', 'bar');
+        var tb = el('button', 'btn', ok ? 'Mark as pending' : 'Mark as confirmed'); tb.type = 'button';
+        tb.addEventListener('click', function () {
+          updateRow(r.id, { status: ok ? 'Pending' : 'Confirmed' }).catch(function () { toast('Could not update. Please try again.', false); });
+        });
+        var del = el('button', 'btn d', armed === r.id ? 'Tap again to delete' : 'Delete'); del.type = 'button';
+        del.addEventListener('click', function () {
+          if (armed !== r.id) { armed = r.id; render(); setTimeout(function () { if (armed === r.id) { armed = null; render(); } }, 4000); return; }
+          armed = null;
+          removeRow(r.id).then(function () { toast('Deleted ' + r.name + '.', true); }).catch(function () { toast('Could not delete. Please try again.', false); });
+        });
+        bar.appendChild(tb); bar.appendChild(del); d.appendChild(bar);
+        item.appendChild(d);
+      }
+      box.appendChild(item);
+    });
+
+    var empty = $('empty');
+    empty.style.display = list.length ? 'none' : 'flex';
+    if (rows.length && !list.length) { empty.querySelector('b').textContent = 'No match found'; empty.querySelector('span').textContent = 'Try a different name or number.'; }
+    else { empty.querySelector('b').textContent = 'No registrations yet'; empty.querySelector('span').textContent = 'Press "Add registration" to enter the first one. It will appear here at once.'; }
+  }
+
+  /* ---------- Add form ---------- */
+  var form = $('add-form');
+  function nMsg(text, good) { var m = $('n-msg'); m.textContent = text; m.hidden = !text; m.className = 'msg ' + (good ? 'ok' : 'err'); }
+  function syncGuard() { var v = $('n-age').value; $('n-guard').hidden = !(v !== '' && Number(v) < 18); }
+  function showForm(show) {
+    form.hidden = !show; $('add-toggle').setAttribute('aria-expanded', show ? 'true' : 'false');
+    if (show) $('n-name').focus();
+  }
+  $('add-toggle').addEventListener('click', function () { showForm(form.hidden); });
+  $('n-close').addEventListener('click', function () { showForm(false); $('add-toggle').focus(); });
+  $('n-age').addEventListener('input', syncGuard);
+  $('q').addEventListener('input', function (e) { query = e.target.value; render(); });
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault(); nMsg('');
+    var name = cleanText($('n-name').value, 80), age = Number($('n-age').value), phone = cleanText($('n-phone').value, 20);
+    var gname = cleanText($('n-gname').value, 80), gphone = cleanText($('n-gphone').value, 20);
+    if (name.length < 2 || $('n-age').value === '' || !Number.isInteger(age) || !phoneOk(phone)) return nMsg('Please fill in the name, age and a valid phone number.', false);
+    if (age < 5 || age > 80) return nMsg('Please enter a valid age.', false);
+    if (age < 18 && (gname.length < 2 || !phoneOk(gphone))) return nMsg('Please add the parent or guardian name and phone number.', false);
+    if (!$('n-consent').checked) return nMsg('Please tick the confirmation box to continue.', false);
+
+    var key = phone.replace(/\D/g, ''), btn = $('n-save'); btn.disabled = true;
+    var dup = rows.some(function (r) { return r.phoneKey === key && String(r.name).toLowerCase() === name.toLowerCase(); });
+    if (dup) { btn.disabled = false; return nMsg('This name and phone number are already registered.', false); }
+
+    addRow({
+      createdAt: new Date().toISOString(), name: name, age: age, cls: cleanText($('n-class').value, 100),
+      phone: phone, phoneKey: key, gname: age < 18 ? gname : '', gphone: age < 18 ? gphone : '',
+      question: cleanText($('n-q').value, 1000), heard: cleanText($('n-heard').value, 200), status: 'Pending'
+    }).then(function () {
+      form.reset(); syncGuard();
+      nMsg('Saved ' + name + '. You can add the next one.', true);
+      $('n-name').focus();
+    }).catch(function (err) {
+      nMsg('Could not save. The phone storage may be full or blocked. Please try again.', false);
+    }).then(function () { btn.disabled = false; });
+  });
+
+  /* ---------- Export ---------- */
+  function csvCell(v) {
+    var s = String(v == null ? '' : v);
+    if (/^[=+\-@\t\r]/.test(s) && !/^\+[0-9\s()\-]+$/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  function saveFile(name, text, type) {
+    var blob = new Blob([text], { type: type }), url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+  }
+  var today = function () { return new Date().toISOString().slice(0, 10); };
+  $('export').addEventListener('click', function () {
+    var head = ['Date', 'Name', 'Age', 'Class or occupation', 'Phone', 'Guardian name', 'Guardian phone', 'Heard from', 'Question', 'Status'];
+    var lines = [head.map(csvCell).join(',')];
+    rows.forEach(function (r) {
+      lines.push([String(r.createdAt || '').slice(0, 10), r.name, r.age, r.cls, r.phone, r.gname, r.gphone, r.heard, r.question, r.status].map(csvCell).join(','));
+    });
+    saveFile('rhyc-registrations-' + today() + '.csv', '\ufeff' + lines.join('\r\n') + '\r\n', 'text/csv;charset=utf-8');
+    toast('Excel file saved to your downloads.', true);
+  });
+  $('backup').addEventListener('click', function () {
+    saveFile('rhyc-backup-' + today() + '.json', JSON.stringify({ app: 'rhyc', version: 1, rows: rows }, null, 1), 'application/json');
+    toast('Backup saved to your downloads. Keep this file safe.', true);
+  });
+  $('restore').addEventListener('click', function () { $('restore-file').click(); });
+  $('restore-file').addEventListener('change', function (e) {
+    var f = e.target.files && e.target.files[0]; e.target.value = '';
+    if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () {
+      var data; try { data = JSON.parse(String(rd.result)); } catch (x) { return toast('This file is not a valid backup.', false); }
+      var list = data && data.app === 'rhyc' && Array.isArray(data.rows) ? data.rows : null;
+      if (!list) return toast('This file is not a valid backup.', false);
+      var have = {}; rows.forEach(function (r) { have[r.id] = 1; });
+      var added = 0;
+      var jobs = list.slice(0, 5000).filter(function (r) { return r && typeof r.id === 'string' && typeof r.name === 'string' && !have[r.id]; }).map(function (r) {
+        var age = Number(r.age);
+        added++;
+        return store.put({
+          id: r.id.slice(0, 40), createdAt: String(r.createdAt || '').slice(0, 40), name: cleanText(r.name, 80), age: age,
+          cls: cleanText(r.cls, 100), phone: cleanText(r.phone, 20), phoneKey: String(r.phone || '').replace(/\D/g, ''),
+          gname: cleanText(r.gname, 80), gphone: cleanText(r.gphone, 20), question: cleanText(r.question, 1000),
+          heard: cleanText(r.heard, 200), status: r.status === 'Confirmed' ? 'Confirmed' : 'Pending'
+        });
+      });
+      Promise.all(jobs).then(refresh).then(function () { toast('Restored ' + added + ' registrations.', true); })
+        .catch(function () { toast('Could not restore the backup.', false); });
+    };
+    rd.readAsText(f);
+  });
+
+  /* ---------- Start ---------- */
+  render();
+  refresh().catch(function () {
+    lock('Storage not available', 'This app needs a browser that can store data on the phone. Please open it in Chrome and do not use a private window.');
+  });
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  }
+})();
+</script>
+</body>
+</html>

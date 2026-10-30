@@ -18,7 +18,7 @@
   --bg:#F3F8F4; --surface:#FFFFFF; --sage:#E4EFE8; --line:#DCE9E0;
   --ink:#12302A; --muted:#3F5F55; --label:#4B6A61;
   --accent:#0B5D4B; --btn:#0B5D4B; --on-btn:#F6F1E3; --emb:#0B5D4B;
-  --gold:#D4A94A; --leaf:#8FC3A5; --deep:#0B5D4B; --on-deep:#F6F1E3; --deep-gold:#EBCF86;
+  --gold:#D4A94A; --leaf:#8FC3A5; --field:#8FB3A0; --err:#8A2A18; --errbg:#FBEAE6; --deep:#0B5D4B; --on-deep:#F6F1E3; --deep-gold:#EBCF86;
   --foot:#12302A; --on-foot:#F6F1E3; --foot-muted:#BFD3C8;
   --serif:'Cormorant Garamond',Georgia,serif; --sans:'Montserrat',system-ui,sans-serif;
   --urdu:'Noto Nastaliq Urdu',serif; --arabic:'Noto Naskh Arabic','Amiri',serif;
@@ -27,14 +27,14 @@
   --bg:#0E1B17; --surface:#15271F; --sage:#1B332A; --line:#27443A;
   --ink:#E6F0EA; --muted:#A9C3B7; --label:#9DB8AC;
   --accent:#7FD6B8; --btn:#3FAE8E; --on-btn:#06241C; --emb:#0B5D4B;
-  --gold:#E3BE6A; --leaf:#2C5A49; --deep:#123B30; --on-deep:#E6F0EA; --deep-gold:#E3BE6A;
+  --gold:#E3BE6A; --leaf:#2C5A49; --deep:#123B30; --on-deep:#E6F0EA; --deep-gold:#E3BE6A; --field:#4E7A68; --err:#F2A090; --errbg:#3A1D17;
   --foot:#091410; --on-foot:#E6F0EA; --foot-muted:#9DB8AC;
   color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0E1B17; --surface:#15271F; --sage:#1B332A; --line:#27443A;
   --ink:#E6F0EA; --muted:#A9C3B7; --label:#9DB8AC;
   --accent:#7FD6B8; --btn:#3FAE8E; --on-btn:#06241C; --emb:#0B5D4B;
-  --gold:#E3BE6A; --leaf:#2C5A49; --deep:#123B30; --on-deep:#E6F0EA; --deep-gold:#E3BE6A;
+  --gold:#E3BE6A; --leaf:#2C5A49; --deep:#123B30; --on-deep:#E6F0EA; --deep-gold:#E3BE6A; --field:#4E7A68; --err:#F2A090; --errbg:#3A1D17;
   --foot:#091410; --on-foot:#E6F0EA; --foot-muted:#9DB8AC;
   color-scheme:dark}
 
@@ -108,6 +108,22 @@ section{padding-block:72px 8px}
 .clines{display:flex;flex-direction:column;gap:6px;font-size:16px}
 .clines a{font-weight:600;color:var(--accent)}
 
+.formwrap{max-width:780px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:30px;display:flex;flex-direction:column;gap:20px}
+.row2{display:flex;flex-wrap:wrap;gap:18px}
+.f{display:flex;flex-direction:column;gap:7px;flex:1 1 220px;min-width:0}.f.lg{flex:2 1 260px}.f.sm{flex:1 1 100px}.f.full{flex:none}
+.l{font-size:14px;font-weight:600}
+input[type=text],input[type=tel],input[type=number]{height:48px;padding:0 14px;border:1.5px solid var(--field);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;font-size:15px;width:100%}
+textarea{padding:12px 14px;border:1.5px solid var(--field);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;font-size:15px;line-height:1.5;width:100%;resize:vertical}
+input:focus,textarea:focus{border-color:var(--accent)}
+.guard{background:var(--sage);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px}.guard b{font-size:14px;color:var(--accent)}
+.chk{display:flex;align-items:flex-start;gap:12px;font-size:14px;color:var(--muted);min-height:44px}.chk input{width:20px;height:20px;margin-top:2px;flex:none;accent-color:var(--btn)}
+.msg{border-radius:10px;padding:12px 16px;font-size:14px;font-weight:500;background:var(--errbg);color:var(--err)}
+.sub{color:var(--muted)}
+button.btn{cursor:pointer;font-family:inherit}button.btn:disabled{opacity:.6;cursor:default}
+.done{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:44px 28px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px}
+.done h3{font-family:var(--serif);font-size:38px;color:var(--accent);line-height:1.1}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 footer{background:var(--foot);color:var(--on-foot);margin-top:72px;padding-block:40px calc(28px + env(safe-area-inset-bottom,0px))}
 .ft{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:24px}
 .ft .name{font-family:var(--serif);font-weight:700;font-size:28px}
@@ -140,7 +156,7 @@ footer{background:var(--foot);color:var(--on-foot);margin-top:72px;padding-block
       <span><span class="t1" style="display:block">Rahe-Haq</span><span class="t2" style="display:block">YOUTH COMMUNITY</span></span>
     </a>
     <nav aria-label="Main">
-      <a href="#about">About</a><a href="#programs">Programs</a><a href="#path">Our path</a><a href="#promise">Our promise</a><a href="#contact">Contact</a>
+      <a href="#about">About</a><a href="#programs">Programs</a><a href="#path">Our path</a><a href="#promise">Our promise</a><a href="#register">Register</a><a href="#contact">Contact</a>
     </nav>
   </div>
 </header>
@@ -155,7 +171,7 @@ footer{background:var(--foot);color:var(--on-foot);margin-top:72px;padding-block
         <h1>Walking young hearts toward the right path</h1>
         <div class="urdu" lang="ur" dir="rtl" style="text-align:right">نوجوانوں کو راہِ حق کی طرف بلانا</div>
         <p class="lead">Rahe-Haq Youth Community (RHYC) brings young people together to learn the Quran, the life of the Prophet, and the character that follows from them, in a safe and open setting.</p>
-        <div class="cta"><a class="btn" href="#contact">Join us</a><a class="btn o" href="#programs">See programs</a></div>
+        <div class="cta"><a class="btn" href="#register">Register now</a><a class="btn o" href="#programs">See programs</a></div>
       </div>
       <figure class="verse" style="margin:0">
         <div class="ar" lang="ar" dir="rtl">وَالَّذِينَ جَاهَدُوا فِينَا لَنَهْدِيَنَّهُمْ سُبُلَنَا</div>
@@ -208,6 +224,42 @@ footer{background:var(--foot);color:var(--on-foot);margin-top:72px;padding-block
     <div class="ref">SAHIH AL-BUKHARI</div>
   </div>
 
+  <section id="register"><div class="w formwrap">
+    <div class="head"><div class="eyebrow">Registration</div><h2>Join Rahe-Haq Youth Community</h2><p class="sub">It takes two minutes. We will contact you to confirm your place and share the time and venue of the next dars.</p></div>
+
+    <form id="reg-form" class="panel" novalidate>
+      <div class="row2">
+        <div class="f lg"><label class="l" for="r-name">Full name</label><input id="r-name" type="text" maxlength="80" autocomplete="name"></div>
+        <div class="f sm"><label class="l" for="r-age">Age</label><input id="r-age" type="number" min="5" max="80" inputmode="numeric"></div>
+      </div>
+      <div class="row2">
+        <div class="f"><label class="l" for="r-class">Class or occupation</label><input id="r-class" type="text" maxlength="100"></div>
+        <div class="f"><label class="l" for="r-phone">Phone or WhatsApp</label><input id="r-phone" type="tel" maxlength="20" autocomplete="tel"></div>
+      </div>
+      <div class="guard" id="r-guard" hidden>
+        <b>Parent or guardian details (required under 18)</b>
+        <div class="row2">
+          <div class="f"><label class="l" for="r-gname">Guardian name</label><input id="r-gname" type="text" maxlength="80"></div>
+          <div class="f"><label class="l" for="r-gphone">Guardian phone</label><input id="r-gphone" type="tel" maxlength="20"></div>
+        </div>
+      </div>
+      <div class="f full"><label class="l" for="r-q">Any other question (optional)</label><textarea id="r-q" rows="4" maxlength="1000"></textarea></div>
+      <div class="f full"><label class="l" for="r-heard">Where did you hear about us?</label><input id="r-heard" type="text" maxlength="200"></div>
+      <div class="hp" aria-hidden="true"><label>Leave this empty <input id="r-web" type="text" tabindex="-1" autocomplete="off"></label></div>
+      <label class="chk"><input id="r-consent" type="checkbox"><span>I confirm the information is correct, and that a parent or guardian has agreed if I am under 18.</span></label>
+      <div id="r-err" class="msg" role="alert" hidden></div>
+      <button id="r-go" class="btn" type="submit" style="align-self:flex-start">Submit registration</button>
+    </form>
+
+    <div id="r-off" class="panel" hidden><h3 style="font-size:20px">Online registration opens soon</h3><p class="sub">Please contact the organizers below to register.</p></div>
+
+    <div id="r-done" class="done" tabindex="-1" hidden>
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10.5" stroke-width="1.5"/><path d="M7 12.5l3.5 3.5L17 9"/></svg>
+      <h3>Registration received</h3>
+      <p class="sub" id="r-done-text"></p>
+    </div>
+  </div></section>
+
   <section id="contact"><div class="w">
     <div class="contact">
       <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
@@ -227,6 +279,7 @@ footer{background:var(--foot);color:var(--on-foot);margin-top:72px;padding-block
   </div>
 </footer>
 
+<script src="config.js"></script>
 <script>
 (function () {
   'use strict';
@@ -245,6 +298,39 @@ footer{background:var(--foot);color:var(--on-foot);margin-top:72px;padding-block
   if (CONTACT.email) line('Email: ' + CONTACT.email);
   if (CONTACT.place) line(CONTACT.place);
   if (!box.children.length) line('Contact details will be shared here soon.');
+
+  /* ---- Registration form ---- */
+  var API = String(window.RHYC_API_URL || '').trim();
+  var $ = function (id) { return document.getElementById(id); };
+  var form = $('reg-form');
+  if (!API) { form.hidden = true; $('r-off').hidden = false; }
+  var ageEl = $('r-age');
+  function syncGuard() { var v = ageEl.value; $('r-guard').hidden = !(v !== '' && Number(v) < 18); }
+  ageEl.addEventListener('input', syncGuard);
+  function err(t) { var m = $('r-err'); m.textContent = t; m.hidden = !t; }
+  form.addEventListener('submit', function (e) {
+    e.preventDefault(); err('');
+    var d = {
+      action: 'register', name: $('r-name').value, age: ageEl.value, cls: $('r-class').value, phone: $('r-phone').value,
+      gname: $('r-gname').value, gphone: $('r-gphone').value, question: $('r-q').value, heard: $('r-heard').value,
+      consent: $('r-consent').checked, website: $('r-web').value
+    };
+    var n = Number(d.age);
+    if (!d.name.trim() || d.age === '' || !d.phone.trim()) return err('Please fill in your name, age and phone number.');
+    if (n < 18 && (!d.gname.trim() || !d.gphone.trim())) return err('Please add your parent or guardian name and phone number.');
+    if (!d.consent) return err('Please tick the confirmation box to continue.');
+    var btn = $('r-go'); btn.disabled = true; btn.textContent = 'Submitting...';
+    fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(d) })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (!res || !res.ok) { err((res && res.error) || 'Something went wrong. Please try again.'); return; }
+        $('r-done-text').textContent = 'JazakAllahu khayran, ' + d.name.trim() + '. We will contact you on ' + d.phone.trim() + ' soon.';
+        form.hidden = true; var done = $('r-done'); done.hidden = false; done.focus();
+        done.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      })
+      .catch(function () { err('Could not reach the server. Please check your internet and try again.'); })
+      .then(function () { btn.disabled = false; btn.textContent = 'Submit registration'; });
+  });
 
   if ('serviceWorker' in navigator) window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
 })();

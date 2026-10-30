@@ -149,22 +149,16 @@ a.linkbtn{display:inline-flex;align-items:center}
   </div>
 </div>
 
-<section id="gate" class="gate" hidden>
+<section id="gate" class="gate">
   <div class="gate-card">
-    <div><h1 id="g-title" style="font-size:32px">Organizer access</h1><p class="sub" id="g-sub"></p></div>
+    <div><h1 style="font-size:32px">Organizer access</h1><p class="sub" id="g-sub">Enter the organizer code to open the registrations.</p></div>
     <form id="g-form" novalidate>
-      <div class="f"><label class="l" for="g-code" id="g-l1">Organizer code</label><input id="g-code" type="password" autocomplete="off" maxlength="64"></div>
-      <div class="f" id="g-row2" hidden><label class="l" for="g-code2">Repeat the code</label><input id="g-code2" type="password" autocomplete="off" maxlength="64"></div>
+      <div class="f"><label class="l" for="g-code">Organizer code</label><input id="g-code" type="password" autocomplete="off" maxlength="64"></div>
       <div id="g-msg" class="msg" role="alert" hidden></div>
       <button class="btn" id="g-go" type="submit">Unlock</button>
     </form>
     <div>
-      <button class="linkbtn" id="g-forgot" type="button">Forgot the code?</button>
-      <div id="g-reset" class="guard" hidden>
-        <b>Reset this app</b>
-        <span style="color:var(--muted);font-size:14px">The code cannot be recovered. Resetting erases all registrations on this phone. Afterwards, set a new code and use "Restore backup" to bring your saved list back.</span>
-        <button class="btn d" id="g-reset-btn" type="button">Erase everything and reset</button>
-      </div>
+      <div class="note" style="padding-bottom:6px">The code is kept in your Google script. Open the script to see or change it.</div>
       <a class="linkbtn" href="./">Back to website</a>
     </div>
   </div>
@@ -173,7 +167,7 @@ a.linkbtn{display:inline-flex;align-items:center}
 <main id="app" hidden>
   <div>
     <h1>Registrations</h1>
-    <p class="sub">Add each young person yourself. Everything is saved on this phone only and is hidden behind your code.</p>
+    <p class="sub">Add each young person yourself. Registrations from the website arrive here automatically. Only the organizer code opens this page.</p>
   </div>
 
   <div id="locked" class="locked" hidden>
@@ -191,9 +185,7 @@ a.linkbtn{display:inline-flex;align-items:center}
     <div class="bar">
       <button class="btn" id="add-toggle" type="button" aria-expanded="false" aria-controls="add-form">Add registration</button>
       <button class="btn o" id="export" type="button" hidden>Export to Excel</button>
-      <button class="btn o" id="backup" type="button" hidden>Save backup</button>
-      <button class="btn o" id="restore" type="button">Restore backup</button>
-      <button class="btn o" id="change-code" type="button">Change code</button>
+      <button class="btn o" id="refresh" type="button">Refresh</button>
       <button class="btn d" id="lock-now" type="button">Lock</button>
       <input id="restore-file" type="file" accept=".json,application/json" hidden>
     </div>
@@ -234,90 +226,44 @@ a.linkbtn{display:inline-flex;align-items:center}
       <div class="empty" id="empty"><b>No registrations yet</b><span>Press "Add registration" to enter the first one. It will appear here at once.</span></div>
     </div>
     <div class="note">Select a name to see full details, confirm a registration or remove it.</div>
-    <div class="note" id="persist-note">Your registrations are stored only on this phone. Press "Save backup" every week and keep the file safe, because clearing the browser data would erase them.</div>
+    <div class="note">All registrations are also kept in your Google Sheet, which works as your backup.</div>
   </div>
 </main>
 
+<script src="config.js"></script>
 <script>
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
-  var rows = [], open = {}, query = '', armed = null, toastTimer = null;
+  var API = String(window.RHYC_API_URL || '').trim();
+  var rows = [], open = {}, query = '', armed = null, toastTimer = null, code = '', idleTimer = null, IDLE_MS = 5 * 60 * 1000;
 
-  /* ---------- Local store (IndexedDB, with a copy of the list for fast rendering) ---------- */
-  var store = (function () {
-    var dbp = null;
-    function conn() {
-      if (dbp) return dbp;
-      dbp = new Promise(function (resolve, reject) {
-        if (!window.indexedDB) return reject(new Error('no-idb'));
-        var req = indexedDB.open('rhyc-registrations', 1);
-        req.onupgradeneeded = function () { req.result.createObjectStore('registrations', { keyPath: 'id' }); };
-        req.onsuccess = function () { resolve(req.result); };
-        req.onerror = function () { reject(req.error || new Error('idb')); };
-      });
-      return dbp;
-    }
-    function run(mode, fn) {
-      return conn().then(function (d) {
-        return new Promise(function (resolve, reject) {
-          var tx = d.transaction('registrations', mode), out = fn(tx.objectStore('registrations'));
-          tx.oncomplete = function () { resolve(out && out.result !== undefined ? out.result : undefined); };
-          tx.onerror = tx.onabort = function () { reject(tx.error || new Error('tx')); };
-        });
-      });
-    }
-    return {
-      all: function () { return run('readonly', function (s) { return s.getAll(); }).then(function (r) { return r || []; }); },
-      put: function (o) { return run('readwrite', function (s) { s.put(o); }); },
-      remove: function (id) { return run('readwrite', function (s) { s.delete(id); }); },
-      get: function (id) { return run('readonly', function (s) { return s.get(id); }); },
-      wipe: function () {
-        var p = dbp ? dbp.then(function (d) { d.close(); }, function () {}) : Promise.resolve();
-        dbp = null;
-        return p.then(function () {
-          return new Promise(function (resolve, reject) {
-            var r = indexedDB.deleteDatabase('rhyc-registrations');
-            r.onsuccess = function () { resolve(); }; r.onerror = function () { reject(r.error); }; r.onblocked = function () { resolve(); };
-          });
-        });
-      }
-    };
-  })();
-  function newId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
-  function refresh() {
-    return store.all().then(function (list) {
-      list.sort(function (a, b) { return String(b.createdAt).localeCompare(String(a.createdAt)); });
-      rows = list; render();
-    });
-  }
-  function addRow(o) { o.id = newId(); return store.put(o).then(refresh); }
-  function updateRow(id, patch) { return store.get(id).then(function (o) { if (!o) return; return store.put(Object.assign(o, patch)); }).then(refresh); }
-  function removeRow(id) { return store.remove(id).then(refresh); }
-
-  function el(tag, cls, text) {
-    var e = document.createElement(tag);
-    if (cls) e.className = cls;
-    if (text != null) e.textContent = text;
-    return e;
-  }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   function toast(text, good) {
-    var t = $('toast');
-    t.textContent = text; t.hidden = !text;
-    t.className = 'msg ' + (good ? 'ok' : 'err');
-    clearTimeout(toastTimer);
-    if (text) toastTimer = setTimeout(function () { t.hidden = true; }, 5000);
+    var t = $('toast'); t.textContent = text; t.hidden = !text; t.className = 'msg ' + (good ? 'ok' : 'err');
+    clearTimeout(toastTimer); if (text) toastTimer = setTimeout(function () { t.hidden = true; }, 5000);
   }
-  function lock(title, text) {
-    $('locked-title').textContent = title; $('locked-text').textContent = text;
-    $('locked').hidden = false; $('content').hidden = true;
-  }
-  function fmtDate(iso) {
-    var d = new Date(iso);
-    return isNaN(d) ? '' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-  }
+  function fmtDate(iso) { var d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
   var cleanText = function (v, max) { return String(v == null ? '' : v).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max); };
   var phoneOk = function (p) { return /^[0-9+\-\s()]{7,20}$/.test(p) && p.replace(/\D/g, '').length >= 7; };
+
+  /* ---------- Server calls ---------- */
+  function call(body) {
+    return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json(); })
+      .catch(function () { return { ok: false, error: 'network' }; });
+  }
+  function authFailed(res) {
+    if (res && (res.error === 'code' || res.error === 'locked')) { lockNow(res.error === 'locked' ? 'Too many wrong codes. Please wait 5 minutes.' : 'The code was not accepted. Please enter it again.'); return true; }
+    return false;
+  }
+  function load() {
+    return call({ action: 'list', code: code }).then(function (res) {
+      if (authFailed(res)) return false;
+      if (!res.ok) { toast('Could not load the list. Check your internet and press Refresh.', false); return false; }
+      rows = res.rows || []; render(); return true;
+    });
+  }
 
   /* ---------- Render ---------- */
   function render() {
@@ -330,13 +276,12 @@ a.linkbtn{display:inline-flex;align-items:center}
     $('st-total').textContent = rows.length;
     $('st-minors').textContent = rows.filter(function (r) { return r.age < 18; }).length;
     $('st-pending').textContent = rows.filter(function (r) { return r.status !== 'Confirmed'; }).length;
-    $('export').hidden = rows.length === 0; $('backup').hidden = rows.length === 0;
+    $('export').hidden = rows.length === 0;
 
     var box = $('rows'); box.textContent = '';
     list.forEach(function (r) {
       var item = el('div', 'item'), line = el('div', 'rowm');
-      var nmw = el('div', 'nmw');
-      var nb = el('button', 'nm', r.name); nb.type = 'button';
+      var nmw = el('div', 'nmw'); var nb = el('button', 'nm', r.name); nb.type = 'button';
       nb.setAttribute('aria-expanded', open[r.id] ? 'true' : 'false');
       nb.addEventListener('click', function () { open[r.id] = !open[r.id]; render(); });
       nmw.appendChild(nb); line.appendChild(nmw);
@@ -344,8 +289,7 @@ a.linkbtn{display:inline-flex;align-items:center}
       line.appendChild(el('div', 'cell ph', r.phone));
       line.appendChild(el('div', 'cell', r.heard || '-'));
       var ok = r.status === 'Confirmed';
-      var st = el('div', 'st'); st.appendChild(el('span', 'pill ' + (ok ? 'c' : 'p'), ok ? 'Confirmed' : 'Pending'));
-      line.appendChild(st);
+      var st = el('div', 'st'); st.appendChild(el('span', 'pill ' + (ok ? 'c' : 'p'), ok ? 'Confirmed' : 'Pending')); line.appendChild(st);
       line.appendChild(el('div', 'info', 'Age ' + r.age + '  ·  ' + r.phone + (r.heard ? '  ·  ' + r.heard : '')));
       item.appendChild(line);
 
@@ -359,39 +303,41 @@ a.linkbtn{display:inline-flex;align-items:center}
         var bar = el('div', 'bar');
         var tb = el('button', 'btn', ok ? 'Mark as pending' : 'Mark as confirmed'); tb.type = 'button';
         tb.addEventListener('click', function () {
-          updateRow(r.id, { status: ok ? 'Pending' : 'Confirmed' }).catch(function () { toast('Could not update. Please try again.', false); });
+          var next = ok ? 'Pending' : 'Confirmed'; tb.disabled = true;
+          call({ action: 'update', code: code, id: r.id, status: next }).then(function (res) {
+            if (authFailed(res)) return;
+            if (!res.ok) { toast('Could not update. Please try again.', false); tb.disabled = false; return; }
+            r.status = next; render();
+          });
         });
         var del = el('button', 'btn d', armed === r.id ? 'Tap again to delete' : 'Delete'); del.type = 'button';
         del.addEventListener('click', function () {
           if (armed !== r.id) { armed = r.id; render(); setTimeout(function () { if (armed === r.id) { armed = null; render(); } }, 4000); return; }
-          armed = null;
-          removeRow(r.id).then(function () { toast('Deleted ' + r.name + '.', true); }).catch(function () { toast('Could not delete. Please try again.', false); });
+          armed = null; del.disabled = true;
+          call({ action: 'delete', code: code, id: r.id }).then(function (res) {
+            if (authFailed(res)) return;
+            if (!res.ok) { toast('Could not delete. Please try again.', false); render(); return; }
+            rows = rows.filter(function (x) { return x.id !== r.id; }); render(); toast('Deleted ' + r.name + '.', true);
+          });
         });
-        bar.appendChild(tb); bar.appendChild(del); d.appendChild(bar);
-        item.appendChild(d);
+        bar.appendChild(tb); bar.appendChild(del); d.appendChild(bar); item.appendChild(d);
       }
       box.appendChild(item);
     });
-
-    var empty = $('empty');
-    empty.style.display = list.length ? 'none' : 'flex';
+    var empty = $('empty'); empty.style.display = list.length ? 'none' : 'flex';
     if (rows.length && !list.length) { empty.querySelector('b').textContent = 'No match found'; empty.querySelector('span').textContent = 'Try a different name or number.'; }
-    else { empty.querySelector('b').textContent = 'No registrations yet'; empty.querySelector('span').textContent = 'Press "Add registration" to enter the first one. It will appear here at once.'; }
+    else { empty.querySelector('b').textContent = 'No registrations yet'; empty.querySelector('span').textContent = 'New registrations from the website will appear here.'; }
   }
 
-  /* ---------- Add form ---------- */
+  /* ---------- Add by hand ---------- */
   var form = $('add-form');
   function nMsg(text, good) { var m = $('n-msg'); m.textContent = text; m.hidden = !text; m.className = 'msg ' + (good ? 'ok' : 'err'); }
   function syncGuard() { var v = $('n-age').value; $('n-guard').hidden = !(v !== '' && Number(v) < 18); }
-  function showForm(show) {
-    form.hidden = !show; $('add-toggle').setAttribute('aria-expanded', show ? 'true' : 'false');
-    if (show) $('n-name').focus();
-  }
+  function showForm(show) { form.hidden = !show; $('add-toggle').setAttribute('aria-expanded', show ? 'true' : 'false'); if (show) $('n-name').focus(); }
   $('add-toggle').addEventListener('click', function () { showForm(form.hidden); });
   $('n-close').addEventListener('click', function () { showForm(false); $('add-toggle').focus(); });
   $('n-age').addEventListener('input', syncGuard);
   $('q').addEventListener('input', function (e) { query = e.target.value; render(); });
-
   form.addEventListener('submit', function (e) {
     e.preventDefault(); nMsg('');
     var name = cleanText($('n-name').value, 80), age = Number($('n-age').value), phone = cleanText($('n-phone').value, 20);
@@ -400,22 +346,13 @@ a.linkbtn{display:inline-flex;align-items:center}
     if (age < 5 || age > 80) return nMsg('Please enter a valid age.', false);
     if (age < 18 && (gname.length < 2 || !phoneOk(gphone))) return nMsg('Please add the parent or guardian name and phone number.', false);
     if (!$('n-consent').checked) return nMsg('Please tick the confirmation box to continue.', false);
-
-    var key = phone.replace(/\D/g, ''), btn = $('n-save'); btn.disabled = true;
-    var dup = rows.some(function (r) { return r.phoneKey === key && String(r.name).toLowerCase() === name.toLowerCase(); });
-    if (dup) { btn.disabled = false; return nMsg('This name and phone number are already registered.', false); }
-
-    addRow({
-      createdAt: new Date().toISOString(), name: name, age: age, cls: cleanText($('n-class').value, 100),
-      phone: phone, phoneKey: key, gname: age < 18 ? gname : '', gphone: age < 18 ? gphone : '',
-      question: cleanText($('n-q').value, 1000), heard: cleanText($('n-heard').value, 200), status: 'Pending'
-    }).then(function () {
-      form.reset(); syncGuard();
-      nMsg('Saved ' + name + '. You can add the next one.', true);
-      $('n-name').focus();
-    }).catch(function (err) {
-      nMsg('Could not save. The phone storage may be full or blocked. Please try again.', false);
-    }).then(function () { btn.disabled = false; });
+    var btn = $('n-save'); btn.disabled = true;
+    call({ action: 'register', name: name, age: age, phone: phone, gname: gname, gphone: gphone, cls: $('n-class').value, question: $('n-q').value, heard: $('n-heard').value, consent: true })
+      .then(function (res) {
+        if (!res.ok) { nMsg(res.error === 'network' ? 'Could not reach the server. Please try again.' : (res.error || 'Could not save.'), false); return; }
+        form.reset(); syncGuard(); nMsg('Saved ' + name + '. You can add the next one.', true); $('n-name').focus();
+        return load();
+      }).then(function () { btn.disabled = false; });
   });
 
   /* ---------- Export ---------- */
@@ -424,146 +361,43 @@ a.linkbtn{display:inline-flex;align-items:center}
     if (/^[=+\-@\t\r]/.test(s) && !/^\+[0-9\s()\-]+$/.test(s)) s = "'" + s;
     return '"' + s.replace(/"/g, '""') + '"';
   }
-  function saveFile(name, text, type) {
-    var blob = new Blob([text], { type: type }), url = URL.createObjectURL(blob), a = document.createElement('a');
-    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-  }
-  var today = function () { return new Date().toISOString().slice(0, 10); };
   $('export').addEventListener('click', function () {
     var head = ['Date', 'Name', 'Age', 'Class or occupation', 'Phone', 'Guardian name', 'Guardian phone', 'Heard from', 'Question', 'Status'];
     var lines = [head.map(csvCell).join(',')];
-    rows.forEach(function (r) {
-      lines.push([String(r.createdAt || '').slice(0, 10), r.name, r.age, r.cls, r.phone, r.gname, r.gphone, r.heard, r.question, r.status].map(csvCell).join(','));
-    });
-    saveFile('rhyc-registrations-' + today() + '.csv', '\ufeff' + lines.join('\r\n') + '\r\n', 'text/csv;charset=utf-8');
+    rows.forEach(function (r) { lines.push([String(r.createdAt || '').slice(0, 10), r.name, r.age, r.cls, r.phone, r.gname, r.gphone, r.heard, r.question, r.status].map(csvCell).join(',')); });
+    var blob = new Blob(['﻿' + lines.join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8' }), url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = 'rhyc-registrations-' + new Date().toISOString().slice(0, 10) + '.csv'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
     toast('Excel file saved to your downloads.', true);
   });
-  $('backup').addEventListener('click', function () {
-    saveFile('rhyc-backup-' + today() + '.json', JSON.stringify({ app: 'rhyc', version: 1, rows: rows }, null, 1), 'application/json');
-    toast('Backup saved to your downloads. Keep this file safe.', true);
-  });
-  $('restore').addEventListener('click', function () { $('restore-file').click(); });
-  $('restore-file').addEventListener('change', function (e) {
-    var f = e.target.files && e.target.files[0]; e.target.value = '';
-    if (!f) return;
-    var rd = new FileReader();
-    rd.onload = function () {
-      var data; try { data = JSON.parse(String(rd.result)); } catch (x) { return toast('This file is not a valid backup.', false); }
-      var list = data && data.app === 'rhyc' && Array.isArray(data.rows) ? data.rows : null;
-      if (!list) return toast('This file is not a valid backup.', false);
-      var have = {}; rows.forEach(function (r) { have[r.id] = 1; });
-      var added = 0;
-      var jobs = list.slice(0, 5000).filter(function (r) { return r && typeof r.id === 'string' && typeof r.name === 'string' && !have[r.id]; }).map(function (r) {
-        var age = Number(r.age);
-        added++;
-        return store.put({
-          id: r.id.slice(0, 40), createdAt: String(r.createdAt || '').slice(0, 40), name: cleanText(r.name, 80), age: age,
-          cls: cleanText(r.cls, 100), phone: cleanText(r.phone, 20), phoneKey: String(r.phone || '').replace(/\D/g, ''),
-          gname: cleanText(r.gname, 80), gphone: cleanText(r.gphone, 20), question: cleanText(r.question, 1000),
-          heard: cleanText(r.heard, 200), status: r.status === 'Confirmed' ? 'Confirmed' : 'Pending'
-        });
-      });
-      Promise.all(jobs).then(refresh).then(function () { toast('Restored ' + added + ' registrations.', true); })
-        .catch(function () { toast('Could not restore the backup.', false); });
-    };
-    rd.readAsText(f);
-  });
+  $('refresh').addEventListener('click', function () { var b = $('refresh'); b.disabled = true; load().then(function (ok) { b.disabled = false; if (ok) toast('Updated.', true); }); });
 
-  /* ---------- Organizer code (lock screen) ---------- */
-  var LOCK_KEY = 'rhyc-lock', FAIL_KEY = 'rhyc-fail', ITER = 200000, IDLE_MS = 5 * 60 * 1000;
-  var mode = 'enter', idleTimer = null, unlocked = false, resetArmed = false;
-  function ls(k, v) {
-    try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; }
-  }
-  function toB64(u8) { var s = ''; for (var i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]); return btoa(s); }
-  function fromB64(b) { var s = atob(b), u = new Uint8Array(s.length); for (var i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; }
-  function derive(code, salt, iter) {
-    var enc = new TextEncoder();
-    return crypto.subtle.importKey('raw', enc.encode(code), 'PBKDF2', false, ['deriveBits']).then(function (k) {
-      return crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: salt, iterations: iter }, k, 256);
-    }).then(function (b) { return new Uint8Array(b); });
-  }
-  function sameBytes(a, b) { if (a.length !== b.length) return false; var d = 0; for (var i = 0; i < a.length; i++) d |= a[i] ^ b[i]; return d === 0; }
+  /* ---------- Lock screen ---------- */
   function gMsg(t, good) { var m = $('g-msg'); m.textContent = t; m.hidden = !t; m.className = 'msg ' + (good ? 'ok' : 'err'); }
-
-  function showGate(m) {
-    mode = m; unlocked = false;
-    $('app').hidden = true; $('gate').hidden = false;
-    $('g-code').value = ''; $('g-code2').value = ''; gMsg('');
-    $('g-row2').hidden = m !== 'setup';
-    $('g-title').textContent = m === 'setup' ? 'Set your organizer code' : 'Organizer access';
-    $('g-sub').textContent = m === 'setup'
-      ? 'Choose a code of at least 6 characters. You need it every time you open the registrations. Write it down somewhere safe.'
-      : 'Enter your code to open the registrations.';
-    $('g-l1').textContent = m === 'setup' ? 'New code' : 'Organizer code';
-    $('g-go').textContent = m === 'setup' ? 'Save code and open' : 'Unlock';
-    $('g-forgot').hidden = m === 'setup' && !ls(LOCK_KEY); $('g-reset').hidden = true; resetArmed = false;
-    $('g-reset-btn').textContent = 'Erase everything and reset';
-    clearTimeout(idleTimer);
+  function lockNow(message) {
+    code = ''; rows = []; open = {}; query = ''; armed = null; $('q').value = ''; showForm(false); render(); toast('');
+    clearTimeout(idleTimer); $('app').hidden = true; $('gate').hidden = false; $('g-code').value = ''; gMsg(message || '', false);
   }
-  function lockNow() {
-    rows = []; open = {}; query = ''; armed = null; $('q').value = ''; showForm(false); render(); toast('');
-    showGate(ls(LOCK_KEY) ? 'enter' : 'setup');
-  }
-  function bumpIdle() { if (!unlocked) return; clearTimeout(idleTimer); idleTimer = setTimeout(lockNow, IDLE_MS); }
-  function unlock() {
-    unlocked = true; $('gate').hidden = true; $('app').hidden = false; bumpIdle();
-    render();
-    refresh().catch(function () {
-      lock('Storage not available', 'This app needs a browser that can store data on the phone. Please open it in Chrome and do not use a private window.');
-    });
-    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-  }
+  function bumpIdle() { if (!code) return; clearTimeout(idleTimer); idleTimer = setTimeout(function () { lockNow('Locked after 5 minutes. Enter the code to continue.'); }, IDLE_MS); }
   ['pointerdown', 'keydown', 'scroll'].forEach(function (ev) { window.addEventListener(ev, bumpIdle, { passive: true }); });
-  document.addEventListener('visibilitychange', function () { if (document.hidden && unlocked) { clearTimeout(idleTimer); idleTimer = setTimeout(lockNow, 60 * 1000); } else bumpIdle(); });
+  document.addEventListener('visibilitychange', function () { if (code && !document.hidden) load(); });
+  $('lock-now').addEventListener('click', function () { lockNow(''); });
 
   $('g-form').addEventListener('submit', function (e) {
     e.preventDefault(); gMsg('');
-    if (!(window.crypto && crypto.subtle)) return gMsg('This browser cannot protect the app with a code. Please use the latest Chrome or Safari.', false);
-    var code = $('g-code').value, btn = $('g-go');
-    if (mode === 'setup') {
-      if (code.length < 6) return gMsg('The code needs at least 6 characters.', false);
-      if (code !== $('g-code2').value) return gMsg('The two codes do not match.', false);
-      btn.disabled = true;
-      var salt = crypto.getRandomValues(new Uint8Array(16));
-      derive(code, salt, ITER).then(function (h) {
-        ls(LOCK_KEY, JSON.stringify({ s: toB64(salt), h: toB64(h), i: ITER })); ls(FAIL_KEY, null);
-        if (ls(LOCK_KEY) === null) { gMsg('This browser would not save the code. Please do not use a private window.', false); return; }
-        unlock();
-      }).catch(function () { gMsg('Could not save the code. Please try again.', false); }).then(function () { btn.disabled = false; });
-      return;
-    }
-    var rec; try { rec = JSON.parse(ls(LOCK_KEY)); } catch (x) { rec = null; }
-    if (!rec) return showGate('setup');
-    var fail; try { fail = JSON.parse(ls(FAIL_KEY)) || { n: 0, until: 0 }; } catch (x) { fail = { n: 0, until: 0 }; }
-    var wait = Math.ceil((fail.until - Date.now()) / 1000);
-    if (wait > 0) return gMsg('Too many wrong codes. Please wait ' + wait + ' seconds.', false);
-    if (!code) return gMsg('Please enter your code.', false);
-    btn.disabled = true;
-    derive(code, fromB64(rec.s), rec.i).then(function (h) {
-      if (sameBytes(h, fromB64(rec.h))) { ls(FAIL_KEY, null); unlock(); return; }
-      fail.n++;
-      if (fail.n >= 5) fail.until = Date.now() + Math.min(900000, 30000 * Math.pow(2, fail.n - 5));
-      ls(FAIL_KEY, JSON.stringify(fail));
+    if (!API) return gMsg('The app is not connected to the Google Sheet yet.', false);
+    var c = $('g-code').value; if (!c) return gMsg('Please enter the code.', false);
+    var btn = $('g-go'); btn.disabled = true; btn.textContent = 'Checking...';
+    call({ action: 'list', code: c }).then(function (res) {
+      if (res.ok) { code = c; rows = res.rows || []; $('gate').hidden = true; $('app').hidden = false; $('g-code').value = ''; render(); bumpIdle(); return; }
       $('g-code').value = '';
-      gMsg(fail.until > Date.now() ? 'Too many wrong codes. Please wait a little and try again.' : 'Wrong code. Please try again.', false);
-    }).catch(function () { gMsg('Could not check the code. Please try again.', false); }).then(function () { btn.disabled = false; });
+      gMsg(res.error === 'locked' ? 'Too many wrong codes. Please wait 5 minutes.' : res.error === 'network' ? 'Could not reach the server. Check your internet.' : 'Wrong code. Please try again.', false);
+    }).then(function () { btn.disabled = false; btn.textContent = 'Unlock'; });
   });
-  $('g-forgot').addEventListener('click', function () { $('g-reset').hidden = !$('g-reset').hidden; });
-  $('g-reset-btn').addEventListener('click', function () {
-    if (!resetArmed) { resetArmed = true; $('g-reset-btn').textContent = 'Tap again to erase everything'; return; }
-    store.wipe().then(function () { ls(LOCK_KEY, null); ls(FAIL_KEY, null); rows = []; showGate('setup'); gMsg('The app was reset. Set a new code.', true); })
-      .catch(function () { gMsg('Could not reset. Please try again.', false); });
-  });
-  $('lock-now').addEventListener('click', lockNow);
-  $('change-code').addEventListener('click', function () { lockNow(); showGate('setup'); gMsg('Choose a new code. Your registrations are not touched.', true); });
 
-  /* ---------- Start ---------- */
-  showGate(ls(LOCK_KEY) ? 'enter' : 'setup');
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
-  }
+  render();
+  if (!API) gMsg('The app is not connected to the Google Sheet yet.', false);
+  if ('serviceWorker' in navigator) window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
 })();
 </script>
 </body>

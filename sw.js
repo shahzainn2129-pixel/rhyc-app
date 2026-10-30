@@ -1,6 +1,6 @@
 /* Offline support: the app files are cached on first visit, fonts are cached as they load. */
-const CACHE = 'rhyc-v2';
-const FILES = ['./', 'index.html', 'admin.html', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png'];
+const CACHE = 'rhyc-v3';
+const FILES = ['./', 'index.html', 'admin.html', 'config.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
@@ -14,13 +14,9 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(req.url);
   const isFont = url.host === 'fonts.googleapis.com' || url.host === 'fonts.gstatic.com';
   if (url.origin !== location.origin && !isFont) return;
-  if (req.mode === 'navigate') {
-    // newest page when online, cached page when offline
-    e.respondWith(fetch(req).then((r) => { if (r.ok) { const copy = r.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); } return r; }).catch(() => caches.match(req).then((hit) => hit || caches.match(url.pathname.endsWith('admin.html') ? 'admin.html' : 'index.html'))));
-    return;
-  }
-  e.respondWith(caches.match(req).then((hit) => hit || fetch(req).then((r) => {
+  // newest copy when online, saved copy when offline
+  e.respondWith(fetch(req).then((r) => {
     if (r.ok || r.type === 'opaque') { const copy = r.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
     return r;
-  }).catch(() => hit)));
+  }).catch(() => caches.match(req).then((hit) => hit || (req.mode === 'navigate' ? caches.match(url.pathname.endsWith('admin.html') ? 'admin.html' : 'index.html') : undefined))));
 });
